@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t djohal/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true djohal/react-test npm test
+
+after_success:
+  - docker build -t djohal/complex-client ./client
+  - docker build -t djohal/complex-server ./server
+  - docker build -t djohal/complex-nginx ./nginx
+  - docker build -t djohal/complex-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
+  # push images to docker hub
+  - docker push djohal/complex-client
+  - docker push djohal/complex-server
+  - docker push djohal/complex-nginx
+  - docker push djohal/complex-worker
